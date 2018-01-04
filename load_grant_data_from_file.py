@@ -61,7 +61,7 @@ def prepare_query(connection, input_file):
                 item.contributor_role = 'Co-Principal Investigator Role'
                 item.contributor = row['PI']
                 item.start_date = row['Budget_Begin_Date']
-                item.end_date = row['Budget_Begin_Date']
+                item.end_date = row['Budget_End_Date']
                 response = template_mod.run(connection, **params)
             else:
                 # Grant already exist
