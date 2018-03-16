@@ -59,16 +59,8 @@ def prepare_query(connection, input_file):
                 item2.name = row['Dept']
 
                 # Check if Department exists
-                # try:
-                    # deets = {}
                 search_query = "get_department_list"
-                query_path = getattr(queries, search_query)
-                    # current_list = query_path.run(connection, **deets)
-                    # match = match_input(row['Dept'], current_list)
-                match = match_input(connection, row['Dept'],"department")
-                # except Exception as e:
-                #    print(e)
-                #    match = 'none'
+                match = match_input(connection, row['Dept'], "department")
 
                 if not match:
                     try:
@@ -92,16 +84,7 @@ def prepare_query(connection, input_file):
                 item3.name = row['PI']
 
                 # Check if Contributor exists
-                # try:
-                #    deets = {}
-                #    search_query = "get_person_list"
-                query_path = getattr(queries, search_query)
-                #    current_list = query_path.run(connection, **deets)
-                #    match2 = match_input(row['PI'], current_list)
                 match2 = match_input(connection, row['PI'], "contributor")
-                # except Exception as e:
-                #    print(e)
-                #    match2 = 'none'
 
                 if not match2:
                     try:
