@@ -2,10 +2,10 @@ import sys
 import yaml
 import csv
 
-from vivo_connect import Connection
-from owls import match_input
-from author import Author
-import queries
+from owlpost.vivo_connect import Connection
+from owlpost.owls import match_input
+from vivo_queries.vdos import Author
+from vivo_queries import queries
 
 
 def get_config(config_path):
@@ -59,17 +59,18 @@ def prepare_query(connection, input_file):
                 item2.name = row['Dept']
 
                 # Check if Department exists
-                try:
-                    deets = {}
-                    search_query = "get_department_list"
-                    query_path = getattr(queries, search_query)
-                    current_list = query_path.run(connection, **deets)
-                    match = match_input(row['Dept'], current_list)
-                except Exception as e:
-                    print(e)
-                    match = 'none'
+                # try:
+                    # deets = {}
+                search_query = "get_department_list"
+                query_path = getattr(queries, search_query)
+                    # current_list = query_path.run(connection, **deets)
+                    # match = match_input(row['Dept'], current_list)
+                match = match_input(connection, row['Dept'],"department")
+                # except Exception as e:
+                #    print(e)
+                #    match = 'none'
 
-                if match == 'none':
+                if not match:
                     try:
                         item2.name = row['Dept']
                         item2.dep_type = 'Academic department'
@@ -91,17 +92,18 @@ def prepare_query(connection, input_file):
                 item3.name = row['PI']
 
                 # Check if Contributor exists
-                try:
-                    deets = {}
-                    search_query = "get_person_list"
-                    query_path = getattr(queries, search_query)
-                    current_list = query_path.run(connection, **deets)
-                    match2 = match_input(row['PI'], current_list)
-                except Exception as e:
-                    print(e)
-                    match2 = 'none'
+                # try:
+                #    deets = {}
+                #    search_query = "get_person_list"
+                query_path = getattr(queries, search_query)
+                #    current_list = query_path.run(connection, **deets)
+                #    match2 = match_input(row['PI'], current_list)
+                match2 = match_input(connection, row['PI'], "contributor")
+                # except Exception as e:
+                #    print(e)
+                #    match2 = 'none'
 
-                if match2 == 'none':
+                if not match2:
                     try:
                         item3.name = row['PI']
                         item3.type = 'Co-Principal Investigator Role'
