@@ -20,7 +20,6 @@ def get_config(config_path):
 
 def prepare_query(connection, input_file):
     template_choice = 'make_grant'
-
     template_mod = getattr(queries, template_choice)
     params = template_mod.get_params(connection)
 
@@ -53,6 +52,7 @@ def prepare_query(connection, input_file):
             query = "SELECT ?n_number WHERE {?n_number <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vivoweb.org/ontology/core#Grant> . " + "?n_number <http://www.w3.org/2000/01/rdf-schema#label> \"" + row['Title'] + "\"}"
             response = (connection.run_query(query)).json()
 
+            # If does not exist, create one
             if not response['results']['bindings']:
                 print "Grant:" + str(item.name)
                 item2 = params['AwardingDepartment']
@@ -60,13 +60,14 @@ def prepare_query(connection, input_file):
 
                 # Check if Department exists
                 search_query = "get_department_list"
-                match = match_input(connection, row['Dept'], "department")
+                match = match_input(connection, row['Dept'], "department", True)
 
+                # If not create one
                 if not match:
                     try:
-                        item2.name = row['Dept']
-                        item2.dep_type = 'Academic department'
-                        params2 = {'Department': item2}
+                        item2.name = row['Prime_Sponsor_Division']
+                        # item2.dep_type = 'Academic department'
+                        params2 = {'Organization': item2}
                         update_path = getattr(queries, 'make_department')
                         response = update_path.run(connection, **params2)
                         print(response)
@@ -84,8 +85,9 @@ def prepare_query(connection, input_file):
                 item3.name = row['PI']
 
                 # Check if Contributor exists
-                match2 = match_input(connection, row['PI'], "contributor")
+                match2 = match_input(connection, row['PI'], "contributor", True)
 
+                # If not create one
                 if not match2:
                     try:
                         item3.name = row['PI']
@@ -97,7 +99,7 @@ def prepare_query(connection, input_file):
                         update_path2 = getattr(queries, 'make_person')
                         params2 = {'Author': author}
                         try:
-                            response2 = update_path2.run(connection, **params2)
+                            update_path2.run(connection, **params2)
                         except Exception as e:
                             print(e)
                             print("Owl Post can not create a(n) " + author.type +
@@ -105,7 +107,7 @@ def prepare_query(connection, input_file):
 
                         params3 = {'Contributor': item3, 'Author': author}
                         update_path3 = getattr(queries, 'make_contributor')
-                        response3 = update_path3.run(connection, **params3)
+                        update_path3.run(connection, **params3)
                     except Exception as e:
                         print e
                         print("Owl Post can not create a(n) " + item3.type +
@@ -118,7 +120,7 @@ def prepare_query(connection, input_file):
                     try:
                         params3 = {'Contributor': item3, 'Author': author}
                         update_path3 = getattr(queries, 'make_contributor')
-                        response3 = update_path3.run(connection, **params3)
+                        update_path3.run(connection, **params3)
                     except Exception as e:
                         print e
                         print("Owl Post can not create a(n) " + item3.type +
@@ -127,7 +129,7 @@ def prepare_query(connection, input_file):
                 item.start_date = row['Budget_Begin_Date']
                 item.end_date = row['Budget_End_Date']
                 print params
-                response = template_mod.run(connection, **params)
+                template_mod.run(connection, **params)
             else:
                 # Grant already exist
                 pass
