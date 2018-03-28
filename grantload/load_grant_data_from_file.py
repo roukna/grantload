@@ -6,6 +6,7 @@ from owlpost.vivo_connect import Connection
 from owlpost.owls import match_input
 from vivo_queries.vdos import Author
 from vivo_queries import queries
+import datetime
 
 
 def get_config(config_path):
@@ -45,94 +46,177 @@ def prepare_query(connection, input_file):
     with open(input_file) as csvfile:
         reader = csv.DictReader(csvfile, fieldnames=table1_fields)
         reader.next()
-        item = params['Grant']
+        grant_item = params['Grant']
         for row in reader:
 
+            # Record ID
+            row_id = row['recid']
+
+            # Grant Name
+            grant_item.name = row['Title']
+
             # Check if grant already exists
-            query = "SELECT ?n_number WHERE {?n_number <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vivoweb.org/ontology/core#Grant> . " + "?n_number <http://www.w3.org/2000/01/rdf-schema#label> \"" + row['Title'] + "\"}"
-            response = (connection.run_query(query)).json()
+            match = match_input(connection, grant_item.name, "grant", True)
 
-            # If does not exist, create one
-            if not response['results']['bindings']:
-                print "Grant:" + str(item.name)
-                item2 = params['AwardingDepartment']
-                item2.name = row['Dept']
-
-                # Check if Department exists
-                search_query = "get_department_list"
-                match = match_input(connection, row['Dept'], "department", True)
-
-                # If not create one
-                if not match:
-                    try:
-                        item2.name = row['Prime_Sponsor_Division']
-                        # item2.dep_type = 'Academic department'
-                        params2 = {'Organization': item2}
-                        update_path = getattr(queries, 'make_department')
-                        response = update_path.run(connection, **params2)
-                        print(response)
-                    except Exception as e:
-                        print("Owl Post can not create a(n) " + item2.type +
-                              " at this time. Please go to your vivo site and make it manually.")
-                else:
-                    item2.n_number = match
-                    print("The n number for this " + item2.type + "is " + item2.n_number)
-
-                item.direct_costs = row['Total_Direct']
-                item.total_award_amount = row['Total_Awarded']
-                item.name = row['Title']
-                item3 = params['Contributor']
-                item3.name = row['PI']
-
-                # Check if Contributor exists
-                match2 = match_input(connection, row['PI'], "contributor", True)
-
-                # If not create one
-                if not match2:
-                    try:
-                        item3.name = row['PI']
-                        item3.type = 'Co-Principal Investigator Role'
-                        author = Author(connection)
-                        author.name = row['PI']
-                        author.first = row['PI'].split(" ")[0]
-                        author.last = row['PI'].split(" ")[1]
-                        update_path2 = getattr(queries, 'make_person')
-                        params2 = {'Author': author}
-                        try:
-                            update_path2.run(connection, **params2)
-                        except Exception as e:
-                            print(e)
-                            print("Owl Post can not create a(n) " + author.type +
-                                  " at this time. Please go to your vivo site and make it manually.")
-
-                        params3 = {'Contributor': item3, 'Author': author}
-                        update_path3 = getattr(queries, 'make_contributor')
-                        update_path3.run(connection, **params3)
-                    except Exception as e:
-                        print e
-                        print("Owl Post can not create a(n) " + item3.type +
-                              " at this time. Please go to your vivo site and make it manually.")
-                else:
-                    author = Author(connection)
-                    author.n_number = match2
-                    item3.type = 'Co-Principal Investigator Role'
-                    print("The n number for this " + author.type + "is " + author.n_number)
-                    try:
-                        params3 = {'Contributor': item3, 'Author': author}
-                        update_path3 = getattr(queries, 'make_contributor')
-                        update_path3.run(connection, **params3)
-                    except Exception as e:
-                        print e
-                        print("Owl Post can not create a(n) " + item3.type +
-                              " at this time. Please go to your vivo site and make it manually.")
-
-                item.start_date = row['Budget_Begin_Date']
-                item.end_date = row['Budget_End_Date']
-                print params
-                template_mod.run(connection, **params)
+            if match:
+                print "Grant" + grant_item.name + "already exists."
             else:
-                # Grant already exist
-                pass
+                # If grant does not exist, create one
+                print "Grant:" + str(grant_item.name)
+
+                # Awarding Organization
+                if row['Prime_Sponsor_Division']:
+                    awardedby_item = params['AwardingDepartment']
+                    awardedby_item.name = row['Prime_Sponsor_Division']
+
+                    # Check if Organization exists
+                    match = match_input(connection, awardedby_item.name, "organization", True)
+                    # If not create one
+                    if not match:
+                        try:
+                            awardedby_item.name = row['Prime_Sponsor_Division']
+                            awardedby_params = {'Organization': awardedby_item}
+                            update_path = getattr(queries, 'make_organization')
+                            update_path.run(connection, **awardedby_params)
+                        except Exception as e:
+                            print("Record ID: " + row_id + ". Unable to create Awarding Organization - " + awardedby_item.name)
+                    else:
+                        awardedby_item.n_number = match
+                        print("Record ID: " + row_id + ". The n number for this Awarding Organization " + awardedby_item.name + "is " + awardedby_item.n_number)
+
+                # Direct Costs
+                if row['Total_Direct']:
+                    grant_item.direct_costs = row['Total_Direct']
+
+                # Total Awarded Amount
+                if row['Total_Awarded']:
+                    grant_item.total_award_amount = row['Total_Awarded']
+
+                # Sponsor Award ID
+                if row['Agency_Number']:
+                    grant_item.sponsor_award_id = row['Agency_Number']
+
+                # Direct Award ID
+                if row['DSR_Number']:
+                    grant_item.direct_award_id = row['DSR_Number']
+
+                # Contributor PI
+                if row['PI']:
+                    contributor_item = params['Contributor_PI']
+                    contributor_item.name = row['PI']
+
+                    # Check if Contributor PI exists
+                    match = match_input(connection, contributor_item.name, "contributor", True)
+
+                    # If not create one
+                    if not match:
+                        try:
+                            contributor_item.name = row['PI']
+                            contributor_item.type = 'Principal Investigator Role'
+
+                            # Contributor Person details: First name, Last Name
+                            author = Author(connection)
+                            author.name = row['PI']
+                            author.first = row['PI'].split(" ")[0]
+                            author.last = row['PI'].split(" ")[1]
+
+                            # Create Person
+                            update_path = getattr(queries, 'make_person')
+                            author_params = {'Author': author}
+                            update_path.run(connection, **author_params)
+                        except Exception as e:
+                            print("Record ID: " + row_id + ". Unable to create PI Person - " + contributor_item.name)
+                            print e
+
+                    else:
+                        # Person exits
+                        author = Author(connection)
+                        author.n_number = match
+                        contributor_item.type = 'Principal Investigator Role'
+                        print("Record ID: " + row_id + ". The n number for this PI " + author.name + "is " + author.n_number)
+
+                    # Create a contributor to the grant with the Person
+                    try:
+                        contributor_params = {'Contributor': contributor_item, 'Author': author}
+                        update_path = getattr(queries, 'make_contributor')
+                        update_path.run(connection, **contributor_params)
+                    except Exception as e:
+                        print("Record ID: " + row_id + ". Unable to create PI Contributor - " + contributor_item.name)
+                        print e
+
+                # Contributor Co-PI
+                if row['CoPI']:
+                    contributor_item = params['Contributor_CoPI']
+                    contributor_item.name = row['CoPI']
+
+                    # Check if Contributor PI exists
+                    match = match_input(connection, contributor_item.name, "contributor", True)
+
+                    # If not create one
+                    if not match:
+                        try:
+                            contributor_item.name = row['CoPI']
+                            contributor_item.type = 'Co-Principal Investigator Role'
+
+                            # Contributor Person details: First name, Last Name
+                            author = Author(connection)
+                            author.name = row['CoPI']
+                            author.first = row['CoPI'].split(" ")[0]
+                            author.last = row['CoPI'].split(" ")[1]
+
+                            # Create Person
+                            update_path = getattr(queries, 'make_person')
+                            author_params = {'Author': author}
+
+                        except Exception as e:
+                            print("Record ID: " + row_id + ". Unable to create Co-PI Person - " + contributor_item.name)
+                            print e
+                    else:
+                        # Person exits
+                        author = Author(connection)
+                        author.n_number = match
+                        contributor_item.type = 'Co-Principal Investigator Role'
+                        print("Record ID: " + row_id + ". The n number for this " + author.type + "is " + author.n_number)
+
+                    # Create a contributor to the grant with the Person
+                    try:
+                        contributor_params = {'Contributor': contributor_item, 'Author': author}
+                        update_path3 = getattr(queries, 'make_contributor')
+                        update_path3.run(connection, **contributor_params)
+                    except Exception as e:
+                        print("Record ID: " + row_id + ". Unable to create Co-PI Contributor - " + contributor_item.name)
+                        print e
+
+                # Administered By
+                if row['Prime_Sponsor']:
+                    adminby_item = params['AdministeredBy']
+                    adminby_item.name = row['Prime_Sponsor']
+
+                    # Check if Administered By Organization exists
+                    match = match_input(connection, row['Prime_Sponsor'], "organization", True)
+                    # If not create one
+                    if not match:
+                        try:
+                            adminby_item.name = row['Prime_Sponsor']
+                            adminby_params = {'Organization': adminby_item}
+                            update_path = getattr(queries, 'make_organization')
+                            update_path.run(connection, **adminby_params)
+                        except Exception as e:
+                            print("Record ID: " + row_id + ". Unable to create Administered By Organization - " + adminby_item.name)
+                            print e
+                    else:
+                        adminby_item.n_number = match
+                        print("Record ID: " + row_id + ". The n number for this " + adminby_item.type + "is " + adminby_item.n_number)
+
+                # Start and End date
+                if row['Project_Begin_Date'] and row['Project_End_Date']:
+                    # Start date
+                    grant_item.start_date = datetime.datetime.strptime(row['Project_Begin_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    # End date
+                    grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    print params
+
+                template_mod.run(connection, **params)
 
 
 def main(argv1, argv2):
