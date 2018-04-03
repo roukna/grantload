@@ -53,7 +53,7 @@ def prepare_query(connection, input_file):
             row_id = row['recid']
 
             # Grant Name
-            grant_item.name = row['Title']
+            grant_item.name = row['Title'].strip()
 
             # Check if grant already exists
             match = match_input(connection, grant_item.name, "grant", True)
@@ -65,16 +65,15 @@ def prepare_query(connection, input_file):
                 print "Grant:" + str(grant_item.name)
 
                 # Awarding Organization
-                if row['Prime_Sponsor_Division']:
+                if row['Prime_Sponsor_Division'].strip():
                     awardedby_item = params['AwardingDepartment']
-                    awardedby_item.name = row['Prime_Sponsor_Division']
+                    awardedby_item.name = row['Prime_Sponsor_Division'].strip()
 
                     # Check if Organization exists
                     match = match_input(connection, awardedby_item.name, "organization", True)
                     # If not create one
                     if not match:
                         try:
-                            awardedby_item.name = row['Prime_Sponsor_Division']
                             awardedby_params = {'Organization': awardedby_item}
                             update_path = getattr(queries, 'make_organization')
                             update_path.run(connection, **awardedby_params)
@@ -86,24 +85,24 @@ def prepare_query(connection, input_file):
 
                 # Direct Costs
                 if row['Total_Direct']:
-                    grant_item.direct_costs = row['Total_Direct']
+                    grant_item.direct_costs = row['Total_Direct'].strip()
 
                 # Total Awarded Amount
                 if row['Total_Awarded']:
-                    grant_item.total_award_amount = row['Total_Awarded']
+                    grant_item.total_award_amount = row['Total_Awarded'].strip()
 
                 # Sponsor Award ID
                 if row['Agency_Number']:
-                    grant_item.sponsor_award_id = row['Agency_Number']
+                    grant_item.sponsor_award_id = row['Agency_Number'].strip()
 
                 # Direct Award ID
                 if row['DSR_Number']:
-                    grant_item.direct_award_id = row['DSR_Number']
+                    grant_item.direct_award_id = row['DSR_Number'].strip()
 
                 # Contributor PI
-                if row['PI']:
+                if row['PI'].strip():
                     contributor_item = params['Contributor_PI']
-                    contributor_item.name = row['PI']
+                    contributor_item.name = row['PI'].strip()
 
                     # Check if Contributor PI exists
                     match = match_input(connection, contributor_item.name, "contributor", True)
@@ -111,14 +110,13 @@ def prepare_query(connection, input_file):
                     # If not create one
                     if not match:
                         try:
-                            contributor_item.name = row['PI']
                             contributor_item.type = 'Principal Investigator Role'
 
                             # Contributor Person details: First name, Last Name
                             author = Author(connection)
-                            author.name = row['PI']
-                            author.first = row['PI'].split(" ")[0]
-                            author.last = row['PI'].split(" ")[1]
+                            author.name = row['PI'].strip()
+                            author.first = row['PI'].strip().split(" ")[0]
+                            author.last = row['PI'].strip().split(" ")[-1]
 
                             # Create Person
                             update_path = getattr(queries, 'make_person')
@@ -129,9 +127,10 @@ def prepare_query(connection, input_file):
                             print e
 
                     else:
-                        # Person exits
+                        # Person exists
                         author = Author(connection)
                         author.n_number = match
+                        author.name = row['PI'].strip()
                         contributor_item.type = 'Principal Investigator Role'
                         print("Record ID: " + row_id + ". The n number for this PI " + author.name + "is " + author.n_number)
 
@@ -145,9 +144,9 @@ def prepare_query(connection, input_file):
                         print e
 
                 # Contributor Co-PI
-                if row['CoPI']:
+                if row['CoPI'].strip():
                     contributor_item = params['Contributor_CoPI']
-                    contributor_item.name = row['CoPI']
+                    contributor_item.name = row['CoPI'].strip()
 
                     # Check if Contributor PI exists
                     match = match_input(connection, contributor_item.name, "contributor", True)
@@ -155,26 +154,28 @@ def prepare_query(connection, input_file):
                     # If not create one
                     if not match:
                         try:
-                            contributor_item.name = row['CoPI']
+                            contributor_item.name = row['CoPI'].strip()
                             contributor_item.type = 'Co-Principal Investigator Role'
 
                             # Contributor Person details: First name, Last Name
                             author = Author(connection)
-                            author.name = row['CoPI']
-                            author.first = row['CoPI'].split(" ")[0]
-                            author.last = row['CoPI'].split(" ")[1]
+                            author.name = row['CoPI'].strip()
+                            author.first = row['CoPI'].strip().split(" ")[0]
+                            author.last = row['CoPI'].strip().split(" ")[-1]
 
                             # Create Person
                             update_path = getattr(queries, 'make_person')
                             author_params = {'Author': author}
+                            update_path.run(connection, **author_params)
 
                         except Exception as e:
                             print("Record ID: " + row_id + ". Unable to create Co-PI Person - " + contributor_item.name)
                             print e
                     else:
-                        # Person exits
+                        # Person exists
                         author = Author(connection)
                         author.n_number = match
+                        author.name = row['PI'].strip()
                         contributor_item.type = 'Co-Principal Investigator Role'
                         print("Record ID: " + row_id + ". The n number for this " + author.type + "is " + author.n_number)
 
@@ -190,14 +191,13 @@ def prepare_query(connection, input_file):
                 # Administered By
                 if row['Prime_Sponsor']:
                     adminby_item = params['AdministeredBy']
-                    adminby_item.name = row['Prime_Sponsor']
+                    adminby_item.name = row['Prime_Sponsor'].strip()
 
                     # Check if Administered By Organization exists
-                    match = match_input(connection, row['Prime_Sponsor'], "organization", True)
+                    match = match_input(connection, adminby_item.name, "organization", True)
                     # If not create one
                     if not match:
                         try:
-                            adminby_item.name = row['Prime_Sponsor']
                             adminby_params = {'Organization': adminby_item}
                             update_path = getattr(queries, 'make_organization')
                             update_path.run(connection, **adminby_params)
@@ -215,6 +215,8 @@ def prepare_query(connection, input_file):
                     # End date
                     grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
                     print params
+
+                    print params['AdministeredBy']
 
                 template_mod.run(connection, **params)
 
