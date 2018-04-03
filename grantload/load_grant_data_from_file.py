@@ -22,7 +22,7 @@ def get_config(config_path):
 def prepare_query(connection, input_file):
     template_choice = 'make_grant'
     template_mod = getattr(queries, template_choice)
-    params = template_mod.get_params(connection)
+
 
     table1_fields = ['recid', 'Fiscal_Year', 'Academic_Unit', 'College', 'Dept', 'DeptID', 'Record_Status',
                      'PS_Project', 'DSR_Number', 'Award_Date', 'Total_Direct', 'Total_Indirect', 'Total_Awarded',
@@ -46,8 +46,10 @@ def prepare_query(connection, input_file):
     with open(input_file) as csvfile:
         reader = csv.DictReader(csvfile, fieldnames=table1_fields)
         reader.next()
-        grant_item = params['Grant']
         for row in reader:
+
+            params = template_mod.get_params(connection)
+            grant_item = params['Grant']
 
             # Record ID
             row_id = row['recid']
@@ -215,8 +217,6 @@ def prepare_query(connection, input_file):
                     # End date
                     grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
                     print params
-
-                    print params['AdministeredBy']
 
                 template_mod.run(connection, **params)
 
