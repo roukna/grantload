@@ -81,22 +81,22 @@ def prepare_query(connection, input_file):
                             print("Record ID: " + row_id + ". Unable to create Awarding Organization - " + awardedby_item.name)
                     else:
                         awardedby_item.n_number = match
-                        print("Record ID: " + row_id + ". The n number for this Awarding Organization " + awardedby_item.name + "is " + awardedby_item.n_number)
+                        print("Record ID: " + row_id + ". The n number for this Awarding Organization " + awardedby_item.name + " is " + awardedby_item.n_number)
 
                 # Direct Costs
-                if row['Total_Direct']:
+                if row['Total_Direct'].strip():
                     grant_item.direct_costs = row['Total_Direct'].strip()
 
                 # Total Awarded Amount
-                if row['Total_Awarded']:
+                if row['Total_Awarded'].strip():
                     grant_item.total_award_amount = row['Total_Awarded'].strip()
 
                 # Sponsor Award ID
-                if row['Agency_Number']:
+                if row['Agency_Number'].strip():
                     grant_item.sponsor_award_id = row['Agency_Number'].strip()
 
                 # Direct Award ID
-                if row['DSR_Number']:
+                if row['DSR_Number'].strip():
                     grant_item.direct_award_id = row['DSR_Number'].strip()
 
                 # Contributor PI
@@ -132,7 +132,7 @@ def prepare_query(connection, input_file):
                         author.n_number = match
                         author.name = row['PI'].strip()
                         contributor_item.type = 'Principal Investigator Role'
-                        print("Record ID: " + row_id + ". The n number for this PI " + author.name + "is " + author.n_number)
+                        print("Record ID: " + row_id + ". The n number for this PI " + author.name + " is " + author.n_number)
 
                     # Create a contributor to the grant with the Person
                     try:
@@ -177,7 +177,7 @@ def prepare_query(connection, input_file):
                         author.n_number = match
                         author.name = row['PI'].strip()
                         contributor_item.type = 'Co-Principal Investigator Role'
-                        print("Record ID: " + row_id + ". The n number for this " + author.type + "is " + author.n_number)
+                        print("Record ID: " + row_id + ". The n number for this " + author.type + " is " + author.n_number)
 
                     # Create a contributor to the grant with the Person
                     try:
@@ -206,7 +206,7 @@ def prepare_query(connection, input_file):
                             print e
                     else:
                         adminby_item.n_number = match
-                        print("Record ID: " + row_id + ". The n number for this " + adminby_item.type + "is " + adminby_item.n_number)
+                        print("Record ID: " + row_id + ". The n number for this " + adminby_item.type + " is " + adminby_item.n_number)
 
                 # Start and End date
                 if row['Project_Begin_Date'] and row['Project_End_Date']:
