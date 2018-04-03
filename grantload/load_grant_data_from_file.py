@@ -6,6 +6,7 @@ from owlpost.vivo_connect import Connection
 from owlpost.owls import match_input
 from vivo_queries.vdos import Author
 from vivo_queries import queries
+from parseinput import parse_input
 import datetime
 
 
@@ -224,6 +225,7 @@ def prepare_query(connection, input_file):
 def main(argv1, argv2):
     config_path = argv1
     input_file = argv2
+    parse_input(input_file)
     config = get_config(config_path)
     email = config.get('email')
     password = config.get('password')
