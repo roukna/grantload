@@ -24,7 +24,7 @@ def parse_input(input_file, output_file):
         writer = csv.writer(f)
         writer.writerows(out_row)
 
-    os.remove(input_file)
+    # os.remove(input_file)
 
 
 def main(argv1, argv2):
