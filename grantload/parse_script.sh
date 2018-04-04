@@ -1,4 +1,2 @@
-$input_file = $1
-echo $1
-echo "Hello"
+#!/bin/sh
 sed -i 's/""/"/g' $1

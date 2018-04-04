@@ -225,7 +225,8 @@ def prepare_query(connection, input_file):
 def main(argv1, argv2):
     config_path = argv1
     input_file = argv2
-    parse_input(input_file)
+    output_file = input_file + "_" + datetime.datetime.now().strftime("%Y%m%d") + '.csv'
+    parse_input(input_file, output_file)
     config = get_config(config_path)
     email = config.get('email')
     password = config.get('password')
@@ -234,7 +235,7 @@ def main(argv1, argv2):
     vivo_url = config.get('upload_url')
 
     connection = Connection(vivo_url, email, password, update_endpoint, query_endpoint)
-    prepare_query(connection, input_file)
+    prepare_query(connection, output_file)
 
 
 if __name__ == '__main__':
