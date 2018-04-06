@@ -39,5 +39,5 @@ gunzip -c grant_image.tar.gz | docker load
 ```bash
 docker run -v ~/input:/var -it grant_image:latest /bin/bash
 ```
-The following command will bindmount the directory called input in your current user's home directory and bindmount it to /var in the container. The ~/input directory must contain the input csv file and the config.yaml file to be used by the program.
+The following command will bindmount the directory called input in your current user's home directory to /var in the container. The ~/input directory must contain the input csv file and the config.yaml file to be used by the program.
 
