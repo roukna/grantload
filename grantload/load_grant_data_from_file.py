@@ -58,7 +58,7 @@ def prepare_query(connection, input_file):
             row_id = row['recid']
 
             # Grant Name
-            grant_item.name = row['Title'].strip()
+            grant_item.name = scrub(row['Title'].strip())
 
             # Check if grant already exists
             match = match_input(connection, grant_item.name, "grant", True)
@@ -216,22 +216,33 @@ def prepare_query(connection, input_file):
                 # Start and End date
                 if row['Project_Begin_Date'] and row['Project_End_Date']:
                     # Start date
-                    grant_item.start_date = datetime.datetime.strptime(row['Project_Begin_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    try:
+                        grant_item.start_date = datetime.datetime.strptime(row['Project_Begin_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    except Exception as e:
+                        grant_item.start_date = datetime.datetime.strptime(row['Project_Begin_Date'], '%Y-%m-%d').strftime('%Y-%m-%dT%H:%M:%S')
+
                     # End date
-                    grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    try:
+                        grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%m/%d/%y').strftime('%Y-%m-%dT%H:%M:%S')
+                    except Exception as e:
+                        grant_item.end_date = datetime.datetime.strptime(row['Project_End_Date'], '%Y-%m-%d').strftime('%Y-%m-%dT%H:%M:%S')
+
                     print params
 
                 template_mod.run(connection, **params)
 
 
+def scrub(label):
+    clean_label = label.replace('"', '\\"')
+    return clean_label
+
+
 def main():
     input_dir = '/var'
     config_path = input_dir + '/config.yaml'
-
     input_file = input_dir + '/UF_Grant_Data.csv'
-    print config_path
-    print input_file
-
+    # output_file = input_file + "_" + datetime.datetime.now().strftime("%Y%m%d") + '.csv'
+    # parse_input(input_file, output_file)
     config = get_config(config_path)
     email = config.get('email')
     password = config.get('password')
