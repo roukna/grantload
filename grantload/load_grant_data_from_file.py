@@ -7,6 +7,8 @@ from owlpost.owls import match_input
 from vivo_queries.vdos import Author
 from vivo_queries import queries
 from parseinput import parse_input
+from os.path import expanduser
+import shutil
 import datetime
 
 
@@ -222,11 +224,14 @@ def prepare_query(connection, input_file):
                 template_mod.run(connection, **params)
 
 
-def main(argv1, argv2):
-    config_path = argv1
-    input_file = argv2
-    output_file = input_file + "_" + datetime.datetime.now().strftime("%Y%m%d") + '.csv'
-    parse_input(input_file, output_file)
+def main():
+    input_dir = '/var'
+    config_path = input_dir + '/config.yaml'
+
+    input_file = input_dir + '/UF_Grant_Data.csv'
+    print config_path
+    print input_file
+
     config = get_config(config_path)
     email = config.get('email')
     password = config.get('password')
@@ -235,8 +240,8 @@ def main(argv1, argv2):
     vivo_url = config.get('upload_url')
 
     connection = Connection(vivo_url, email, password, update_endpoint, query_endpoint)
-    prepare_query(connection, output_file)
+    prepare_query(connection, input_file)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main()
