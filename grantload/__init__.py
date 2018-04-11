@@ -1,1 +1,2 @@
-import load_grant_data_from_file
+from grantload import load_grant_data_from_file
+from grantload import parseinput
