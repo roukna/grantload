@@ -1,10 +1,10 @@
 email: 'vivo_root@school.edu'
 password: 'vivo123'
 
-update_endpoint: 'http://10.16.23.243:8080/vivo/api/sparqlUpdate'
-query_endpoint: 'http://10.16.23.243:8080/vivo/api/sparqlQuery'
+update_endpoint: 'http://localhost:8080/vivo/api/sparqlUpdate'
+query_endpoint: 'http://localhost:8080/vivo/api/sparqlQuery'
 
-checking_url: 'http://10.16.23.243:8080/vivo/display/'
+checking_url: 'http://10.16.135.118:8080/vivo/display/'
 upload_url: 'http://vivo.school.edu/individual/'
 
 input_file: 'data_in/testing.bib'
