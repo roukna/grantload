@@ -13,4 +13,4 @@ requests==2.18.4
 urllib3==1.22
 mysql-connector-python
 -e git+https://github.com/roukna/vivo_queries.git@develop#egg=vivo_queries
--e git+https://github.com/roukna/owl-post.git@develop2#egg=owlpost
+-e git+https://github.com/roukna/owl-post.git@develop#egg=owlpost

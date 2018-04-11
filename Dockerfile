@@ -1,4 +1,4 @@
-FROM python:2.7-stretch
+FROM python:stretch
 COPY requirements.txt grantload/ /usr/src/grantload/ 
 WORKDIR /usr/src/grantload
 RUN pip install --no-cache-dir -r requirements.txt
