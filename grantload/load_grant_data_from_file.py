@@ -4,7 +4,6 @@ import csv
 
 from owlpost.vivo_connect import Connection
 from owlpost.owls import match_input
-from vivo_queries.vdos import Author
 from vivo_queries import queries
 import datetime
 
@@ -75,8 +74,9 @@ def prepare_query(connection, input_file):
                     # If not create one
                     if not match:
                         try:
-                            awardedby_params = {'Organization': awardedby_item}
                             update_path = getattr(queries, 'make_organization')
+                            awardedby_params = update_path.get_params(connection)
+                            awardedby_params['Organization'] = awardedby_item
                             update_path.run(connection, **awardedby_params)
                         except Exception as e:
                             print("Record ID: " + row_id + ". Unable to create Awarding Organization - " + awardedby_item.name)
@@ -106,7 +106,7 @@ def prepare_query(connection, input_file):
                     contributor_item.name = row['PI'].strip()
 
                     # Check if Contributor PI exists
-                    match = match_input(connection, contributor_item.name, "contributor", True)
+                    match = match_input(connection, contributor_item.name, "contributor_pi", True)
 
                     # If not create one
                     if not match:
@@ -114,35 +114,21 @@ def prepare_query(connection, input_file):
                             contributor_item.type = 'Principal Investigator Role'
 
                             # Contributor Person details: First name, Last Name
-                            author = Author(connection)
-                            author.name = row['PI'].strip()
-                            author.first = row['PI'].strip().split(" ")[0]
-                            author.last = row['PI'].strip().split(" ")[-1]
+                            contributor_item.name = row['PI'].strip()
+                            contributor_item.first = row['PI'].strip().split(" ")[0]
+                            if len(row['PI'].strip().split(" ")) == 3:
+                                contributor_item.middle = row['PI'].strip().split(" ")[1]
+                            else:
+                                contributor_item.middle = ''
+                            contributor_item.last = row['PI'].strip().split(" ")[-1]
 
-                            # Create Person
-                            update_path = getattr(queries, 'make_person')
-                            author_params = {'Author': author}
-                            update_path.run(connection, **author_params)
+                            update_path = getattr(queries, 'make_contributor')
+                            contributor_params = update_path.get_params(connection)
+                            contributor_params['Contributor'] = contributor_item
+                            update_path.run(connection, **contributor_params)
                         except Exception as e:
-                            print("Record ID: " + row_id + ". Unable to create PI Person - " + contributor_item.name)
                             print(e)
-
-                    else:
-                        # Person exists
-                        author = Author(connection)
-                        author.n_number = match
-                        author.name = row['PI'].strip()
-                        contributor_item.type = 'Principal Investigator Role'
-                        print("Record ID: " + row_id + ". The n number for this PI " + author.name + " is " + author.n_number)
-
-                    # Create a contributor to the grant with the Person
-                    try:
-                        contributor_params = {'Contributor': contributor_item, 'Author': author}
-                        update_path = getattr(queries, 'make_contributor')
-                        update_path.run(connection, **contributor_params)
-                    except Exception as e:
-                        print("Record ID: " + row_id + ". Unable to create PI Contributor - " + contributor_item.name)
-                        print(e)
+                            print("Record ID: " + row_id + ". Unable to create Principle Investigator - " + contributor_item.name)
 
                 # Contributor Co-PI
                 if row['CoPI'].strip():
@@ -150,7 +136,7 @@ def prepare_query(connection, input_file):
                     contributor_item.name = row['CoPI'].strip()
 
                     # Check if Contributor PI exists
-                    match = match_input(connection, contributor_item.name, "contributor", True)
+                    match = match_input(connection, contributor_item.name, "contributor_copi", True)
 
                     # If not create one
                     if not match:
@@ -159,35 +145,20 @@ def prepare_query(connection, input_file):
                             contributor_item.type = 'Co-Principal Investigator Role'
 
                             # Contributor Person details: First name, Last Name
-                            author = Author(connection)
-                            author.name = row['CoPI'].strip()
-                            author.first = row['CoPI'].strip().split(" ")[0]
-                            author.last = row['CoPI'].strip().split(" ")[-1]
+                            contributor_item.name = row['CoPI'].strip()
+                            contributor_item.first = row['CoPI'].strip().split(" ")[0]
+                            if len(row['CoPI'].strip().split(" ")) == 3:
+                                contributor_item.middle = row['CoPI'].strip().split(" ")[1]
+                            else:
+                                contributor_item.middle = ''
+                            contributor_item.last = row['CoPI'].strip().split(" ")[-1]
 
-                            # Create Person
-                            update_path = getattr(queries, 'make_person')
-                            author_params = {'Author': author}
-                            update_path.run(connection, **author_params)
-
+                            update_path3 = getattr(queries, 'make_contributor')
+                            contributor_params = update_path3.get_params(connection)
+                            contributor_params['Contributor'] = contributor_item
+                            update_path3.run(connection, **contributor_params)
                         except Exception as e:
-                            print("Record ID: " + row_id + ". Unable to create Co-PI Person - " + contributor_item.name)
-                            print(e)
-                    else:
-                        # Person exists
-                        author = Author(connection)
-                        author.n_number = match
-                        author.name = row['PI'].strip()
-                        contributor_item.type = 'Co-Principal Investigator Role'
-                        print("Record ID: " + row_id + ". The n number for this " + author.type + " is " + author.n_number)
-
-                    # Create a contributor to the grant with the Person
-                    try:
-                        contributor_params = {'Contributor': contributor_item, 'Author': author}
-                        update_path3 = getattr(queries, 'make_contributor')
-                        update_path3.run(connection, **contributor_params)
-                    except Exception as e:
-                        print("Record ID: " + row_id + ". Unable to create Co-PI Contributor - " + contributor_item.name)
-                        print(e)
+                            print("Record ID: " + row_id + ". Unable to create Co-Principle Investigator - " + contributor_item.name)
 
                 # Administered By
                 if row['Prime_Sponsor']:
@@ -199,8 +170,9 @@ def prepare_query(connection, input_file):
                     # If not create one
                     if not match:
                         try:
-                            adminby_params = {'Organization': adminby_item}
                             update_path = getattr(queries, 'make_organization')
+                            adminby_params = update_path.get_params(connection)
+                            adminby_params['Organization'] = adminby_item
                             update_path.run(connection, **adminby_params)
                         except Exception as e:
                             print("Record ID: " + row_id + ". Unable to create Administered By Organization - " + adminby_item.name)
@@ -237,8 +209,6 @@ def main():
     input_dir = '/var'
     config_path = input_dir + '/config.yaml'
     input_file = input_dir + '/UF_Grant_Data.csv'
-    # output_file = input_file + "_" + datetime.datetime.now().strftime("%Y%m%d") + '.csv'
-    # parseinput.parse_input(input_file)
     config = get_config(config_path)
     email = config.get('email')
     password = config.get('password')
