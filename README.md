@@ -48,7 +48,7 @@ The code loads the Grant data from an input JSON file into the VIVO Graph databa
 
 The code parses the JSON file and uses the following mapping to load the data into VIVO.
 
-| VIVO Field         | Field in CSV                                          |
+| VIVO Field         | Field in JSON file                                    |
 |--------------------|-------------------------------------------------------|
 | awarded_by         | reporting_sponsor_name                                |
 | data/time interval | clk_awd_overall_start_date / clk_awd_overall_end_date |
