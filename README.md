@@ -1,5 +1,5 @@
 # grantload
-Load grant data from csv file to VIVO
+Load grant data from JSON file to VIVO
 
 ## Getting Started
 
