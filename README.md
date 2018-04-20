@@ -46,6 +46,9 @@ The config file must contain the correct IP address of the VIVO server.
 ### What the code does?
 The code loads the Grant data from an input JSON file into the VIVO Graph database. It uses the `vivo_queries` and `owpost` libraries as reference.
 
+**Future enhancement:**
+grantload used only the match function defined on owls.py (of owlpost). Since, it is just one function, the dependency can be removed from owlpost by writing the same function inside grantload.
+
 The code parses the JSON file and uses the following mapping to load the data into VIVO.
 
 | VIVO Field         | Field in JSON file                                    |
