@@ -64,10 +64,10 @@ The code parses the JSON file and uses the following mapping to load the data in
 If we perform bulk load of grants data using the API, it takes time to for the Grants to reflect on the VIVO portal (while running on localhost using vivo vagrant). Sometime, it does not show up as well. For validation purpose, one can always check for the Grants that are being loaded by running the following SPARQL query:
 
 ```sparql
-SELECT ?person ?p_label
+SELECT ?grant ?g_label
 WHERE {
-  ?person <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vivoweb.org/ontology/core#Grant> .
-  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?p_label
+  ?grant <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vivoweb.org/ontology/core#Grant> .
+  ?grant <http://www.w3.org/2000/01/rdf-schema#label> ?g_label
  
 }
 ```
