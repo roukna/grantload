@@ -50,7 +50,7 @@ def prepare_query(connection, input_file):
         grant_item = params['Grant']
 
         # Record ID
-        row_id = row_id + 1
+        row_id = row['awards_history_id']
 
         # Grant Name
         grant_item.name = scrub(row['CLK_AWD_FULL_TITLE'].strip())
@@ -59,7 +59,7 @@ def prepare_query(connection, input_file):
         match = match_input(connection, grant_item.name, "grant", True)
 
         if match:
-            print("Grant" + grant_item.name + "already exists.")
+            print("Record ID: " + str(row_id) + " Grant" + grant_item.name + "already exists.")
         else:
             # If grant does not exist, create one
             print("Grant:" + str(grant_item.name))
@@ -184,8 +184,15 @@ def prepare_query(connection, input_file):
             # Start and End date
             if row['CLK_AWD_OVERALL_START_DATE'] and row['CLK_AWD_OVERALL_END_DATE']:
                 # Start date
-                grant_item.start_date = datetime.datetime.strptime(row['CLK_AWD_OVERALL_START_DATE'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%S')
-                grant_item.end_date = datetime.datetime.strptime(row['CLK_AWD_OVERALL_END_DATE'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%S')
+                try:
+                    grant_item.start_date = datetime.datetime.strptime(row['CLK_AWD_OVERALL_START_DATE'],
+                                                                       '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%S')
+                    grant_item.end_date = datetime.datetime.strptime(row['CLK_AWD_OVERALL_END_DATE'],
+                                                                     '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%S')
+                except Exception as e:
+                    print("Record ID: " + str(row_id) + ". Unable to parse datetime interval: " +
+                          str(row['CLK_AWD_OVERALL_START_DATE']) + "-" + str(row['CLK_AWD_OVERALL_END_DATE']))
+                    print(e)
                 print(params)
 
             template_mod.run(connection, **params)
